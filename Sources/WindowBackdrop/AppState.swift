@@ -7,11 +7,12 @@ final class AppState: ObservableObject {
     @Published var windows: [TrackedWindow] = []
     @Published var activeWindow: TrackedWindow?
     @Published var backgroundColor = Color(red: 0.08, green: 0.11, blue: 0.13)
+    @Published var emptyZoneColor = Color.black
     @Published var imageURL: URL?
+    @Published var imageFitMode = ImageFitMode.keepAspectRatio
     @Published var opacity = 1.0
     @Published var blurRadius = 0.0
     @Published var coverMenuBar = false
-    @Published var coverDock = false
     @Published var status = "Press Start, then click any window. The rest of that display becomes the backdrop."
     @Published var isBackdropEnabled = false {
         didSet { isBackdropEnabled ? startBackdrop() : stopBackdrop() }
@@ -99,11 +100,12 @@ final class AppState: ObservableObject {
     private func syncBackdrop(to window: TrackedWindow) {
         let configuration = BackdropConfiguration(
             color: NSColor(backgroundColor),
+            emptyZoneColor: NSColor(emptyZoneColor),
             imageURL: imageURL,
+            imageFitMode: imageFitMode,
             opacity: opacity,
             blurRadius: blurRadius,
-            coverMenuBar: coverMenuBar,
-            coverDock: coverDock
+            coverMenuBar: coverMenuBar
         )
         backdropController.show(behind: window, configuration: configuration)
     }
