@@ -51,6 +51,11 @@ struct ContentView: View {
                     SliderRow(title: "Opacity", value: $appState.opacity, range: 0.1...1.0, suffix: "")
                     SliderRow(title: "Blur", value: $appState.blurRadius, range: 0...40, suffix: "px")
                 }
+
+                Section("Coverage") {
+                    Toggle("Cover Menu Bar", isOn: $appState.coverMenuBar)
+                    Toggle("Cover Dock", isOn: $appState.coverDock)
+                }
             }
             .formStyle(.grouped)
 

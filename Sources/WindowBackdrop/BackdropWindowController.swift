@@ -6,6 +6,8 @@ struct BackdropConfiguration: Equatable {
     var imageURL: URL?
     var opacity: Double
     var blurRadius: Double
+    var coverMenuBar: Bool
+    var coverDock: Bool
 }
 
 @MainActor
@@ -15,7 +17,7 @@ final class BackdropWindowController {
 
     func show(behind target: TrackedWindow, configuration: BackdropConfiguration) {
         let backdropWindow = window ?? makeWindow()
-        let frame = Self.visibleDisplayFrame(containingCoreGraphicsFrame: target.frame)
+        let frame = Self.backdropFrame(containingCoreGraphicsFrame: target.frame, configuration: configuration)
 
         backdropWindow.setFrame(frame, display: true)
         backdropWindow.contentView = NSHostingView(
@@ -52,7 +54,7 @@ final class BackdropWindowController {
         newWindow.hasShadow = false
         newWindow.level = .normal
         newWindow.collectionBehavior = [
-            .canJoinAllSpaces,
+            .moveToActiveSpace,
             .fullScreenAuxiliary,
             .stationary,
             .ignoresCycle
@@ -63,7 +65,38 @@ final class BackdropWindowController {
         return newWindow
     }
 
-    private static func visibleDisplayFrame(containingCoreGraphicsFrame frame: CGRect) -> CGRect {
+    private static func backdropFrame(
+        containingCoreGraphicsFrame frame: CGRect,
+        configuration: BackdropConfiguration
+    ) -> CGRect {
+        let screen = screen(containingCoreGraphicsFrame: frame)
+        let fullFrame = screen.frame
+        let visibleFrame = screen.visibleFrame
+
+        var minX = fullFrame.minX
+        var minY = fullFrame.minY
+        var maxX = fullFrame.maxX
+        var maxY = fullFrame.maxY
+
+        if !configuration.coverMenuBar {
+            maxY = min(maxY, visibleFrame.maxY)
+        }
+
+        if !configuration.coverDock {
+            minX = max(minX, visibleFrame.minX)
+            minY = max(minY, visibleFrame.minY)
+            maxX = min(maxX, visibleFrame.maxX)
+        }
+
+        return CGRect(
+            x: minX,
+            y: minY,
+            width: max(maxX - minX, 1),
+            height: max(maxY - minY, 1)
+        )
+    }
+
+    private static func screen(containingCoreGraphicsFrame frame: CGRect) -> NSScreen {
         let matchingScreen = NSScreen.screens.max { left, right in
             intersectionArea(between: left, andCoreGraphicsFrame: frame)
                 < intersectionArea(between: right, andCoreGraphicsFrame: frame)
@@ -72,10 +105,10 @@ final class BackdropWindowController {
         guard let matchingScreen,
               intersectionArea(between: matchingScreen, andCoreGraphicsFrame: frame) > 0
         else {
-            return NSScreen.main?.visibleFrame ?? frame
+            return NSScreen.main ?? NSScreen.screens[0]
         }
 
-        return matchingScreen.visibleFrame
+        return matchingScreen
     }
 
     private static func intersectionArea(between screen: NSScreen, andCoreGraphicsFrame frame: CGRect) -> CGFloat {

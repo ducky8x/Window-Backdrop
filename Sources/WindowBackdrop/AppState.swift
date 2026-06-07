@@ -10,6 +10,8 @@ final class AppState: ObservableObject {
     @Published var imageURL: URL?
     @Published var opacity = 1.0
     @Published var blurRadius = 0.0
+    @Published var coverMenuBar = false
+    @Published var coverDock = false
     @Published var status = "Press Start, then click any window. The rest of that display becomes the backdrop."
     @Published var isBackdropEnabled = false {
         didSet { isBackdropEnabled ? startBackdrop() : stopBackdrop() }
@@ -79,9 +81,9 @@ final class AppState: ObservableObject {
 
     private func syncToFrontmostWindow() {
         guard let window = tracker.frontmostWindow() else {
-            activeWindow = nil
-            backdropController.close()
-            status = "No target window found. Click a normal app window."
+            status = activeWindow == nil
+                ? "No target window found. Click a normal app window."
+                : "Waiting for the active Space to settle..."
             return
         }
 
@@ -99,7 +101,9 @@ final class AppState: ObservableObject {
             color: NSColor(backgroundColor),
             imageURL: imageURL,
             opacity: opacity,
-            blurRadius: blurRadius
+            blurRadius: blurRadius,
+            coverMenuBar: coverMenuBar,
+            coverDock: coverDock
         )
         backdropController.show(behind: window, configuration: configuration)
     }

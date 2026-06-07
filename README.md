@@ -23,6 +23,7 @@ The app bundle appears in the Dock and can be reopened from the Dock while it is
 
 - The app uses CoreGraphics to list and track visible windows.
 - The backdrop is a borderless AppKit window with `ignoresMouseEvents` enabled.
-- The backdrop fills the target window's display `visibleFrame`, which excludes the menu bar and Dock.
+- The backdrop normally fills the target window's display `visibleFrame`, which excludes the menu bar and Dock.
+- Cover Menu Bar and Cover Dock expand the backdrop frame into those reserved screen areas.
 - Press Start Backdrop, then click any normal window to make it the foreground target.
 - macOS does not provide a perfect public API for permanently parenting a window behind another app's window, so the app keeps re-ordering the display backdrop below the active target.
