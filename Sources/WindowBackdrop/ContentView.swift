@@ -44,6 +44,17 @@ struct ContentView: View {
                             .font(.caption)
                             .foregroundStyle(.secondary)
                             .lineLimit(1)
+
+                        Picker("Image Fit", selection: $appState.imageFitMode) {
+                            ForEach(ImageFitMode.allCases) { mode in
+                                Text(mode.title).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.menu)
+
+                        if appState.imageFitMode == .keepAspectRatio {
+                            ColorPicker("Empty Zones", selection: $appState.emptyZoneColor, supportsOpacity: false)
+                        }
                     }
                 }
 
@@ -54,7 +65,6 @@ struct ContentView: View {
 
                 Section("Coverage") {
                     Toggle("Cover Menu Bar", isOn: $appState.coverMenuBar)
-                    Toggle("Cover Dock", isOn: $appState.coverDock)
                 }
             }
             .formStyle(.grouped)

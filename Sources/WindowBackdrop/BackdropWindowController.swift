@@ -3,11 +3,12 @@ import SwiftUI
 
 struct BackdropConfiguration: Equatable {
     var color: NSColor
+    var emptyZoneColor: NSColor
     var imageURL: URL?
+    var imageFitMode: ImageFitMode
     var opacity: Double
     var blurRadius: Double
     var coverMenuBar: Bool
-    var coverDock: Bool
 }
 
 @MainActor
@@ -73,20 +74,10 @@ final class BackdropWindowController {
         let fullFrame = screen.frame
         let visibleFrame = screen.visibleFrame
 
-        var minX = fullFrame.minX
-        var minY = fullFrame.minY
-        var maxX = fullFrame.maxX
-        var maxY = fullFrame.maxY
-
-        if !configuration.coverMenuBar {
-            maxY = min(maxY, visibleFrame.maxY)
-        }
-
-        if !configuration.coverDock {
-            minX = max(minX, visibleFrame.minX)
-            minY = max(minY, visibleFrame.minY)
-            maxX = min(maxX, visibleFrame.maxX)
-        }
+        let minX = visibleFrame.minX
+        let minY = visibleFrame.minY
+        let maxX = visibleFrame.maxX
+        let maxY = configuration.coverMenuBar ? fullFrame.maxY : visibleFrame.maxY
 
         return CGRect(
             x: minX,
@@ -127,17 +118,44 @@ private struct BackdropContentView: View {
     let configuration: BackdropConfiguration
 
     var body: some View {
-        ZStack {
-            Color(nsColor: configuration.color)
+        GeometryReader { geometry in
+            ZStack {
+                Color(nsColor: backgroundColor)
 
-            if let imageURL = configuration.imageURL,
-               let image = NSImage(contentsOf: imageURL) {
-                Image(nsImage: image)
-                    .resizable()
-                    .scaledToFill()
-                    .blur(radius: configuration.blurRadius)
+                if let imageURL = configuration.imageURL,
+                   let image = NSImage(contentsOf: imageURL) {
+                    imageView(image, in: geometry.size)
+                        .blur(radius: configuration.blurRadius)
+                }
             }
+            .clipped()
         }
-        .clipped()
+    }
+
+    private var backgroundColor: NSColor {
+        configuration.imageFitMode == .keepAspectRatio
+            ? configuration.emptyZoneColor
+            : configuration.color
+    }
+
+    @ViewBuilder
+    private func imageView(_ image: NSImage, in size: CGSize) -> some View {
+        switch configuration.imageFitMode {
+        case .keepAspectRatio:
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(width: size.width, height: size.height)
+        case .keepAspectRatioAndFillScreen:
+            Image(nsImage: image)
+                .resizable()
+                .scaledToFill()
+                .frame(width: size.width, height: size.height)
+                .clipped()
+        case .fitEntireImage:
+            Image(nsImage: image)
+                .resizable()
+                .frame(width: size.width, height: size.height)
+        }
     }
 }
