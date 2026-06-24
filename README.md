@@ -1,6 +1,7 @@
 # WindowBackdrop
 
-> **This project is archived and no longer maintained. For more updates, check [this repository]([url](https://github.com/ducky8x/Mac-Speedrunning-Tools)).**
+> **This project is archived and no longer maintained. For more updates, check this repository:**
+> **(https://github.com/ducky8x/Mac-Speedrunning-Tools**
 
 A small macOS utility that places a non-interactive backdrop behind the active window.
 
